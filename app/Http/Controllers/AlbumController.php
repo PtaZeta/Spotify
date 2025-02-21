@@ -4,17 +4,27 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAlbumRequest;
 use App\Http\Requests\UpdateAlbumRequest;
+use App\Mail\superarCanciones;
 use App\Models\Album;
+use App\Models\Artista;
 use App\Models\Cancion;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class AlbumController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function enviarCorreoSiSuperaCanciones(Album $album)
+    {
+        $canciones = $album->canciones()->count();
+        if ($canciones >= 5) {
+            Mail::to('manuel@inbox.mailtrap.io')->send(new superarCanciones($canciones, $album));
+            return 'Correo enviado correctamente.';
+        } else {
+            return 'El álbum no tiene suficientes canciones para enviar el correo.';
+        }
+    }
 
     public function index()
     {
@@ -26,13 +36,14 @@ class AlbumController extends Controller
      */
     public function create()
     {
-        if (Auth::check())
+        if (Auth::check()) {
             return view('albumes.create', [
                 'usuarios' => User::all(),
                 'canciones' => Cancion::all(),
             ]);
-        else
+        } else {
             return redirect()->route('login');
+        }
     }
 
     /**
@@ -73,13 +84,13 @@ class AlbumController extends Controller
     {
         $artistasUnicos = $album->canciones->flatMap->artistas->unique('id');
         $duracionTotal = $album->canciones->reduce(function ($carry, $cancion) {
-            list($minutos, $segundos) = explode(':', $cancion->duracion);
-            $carry += ($minutos * 60) + $segundos;
+            [$minutos, $segundos] = explode(':', $cancion->duracion);
+            $carry += $minutos * 60 + $segundos;
             return $carry;
         }, 0);
         $minutosTotal = floor($duracionTotal / 60);
         $segundosTotal = $duracionTotal % 60;
-        $duracionTotalFormateada = sprintf("%02d:%02d", $minutosTotal, $segundosTotal);
+        $duracionTotalFormateada = sprintf('%02d:%02d', $minutosTotal, $segundosTotal);
 
         $ordenCampo = $request->input('orden', 'titulo');
         $ordenTipo = $request->input('tipo', 'asc');
@@ -120,9 +131,7 @@ class AlbumController extends Controller
             $archivo = $request->file('imagen');
             $archivo->storeAs('imagenes', $nombreFoto, 'public');
             $album->imagen = asset("storage/imagenes/{$nombreFoto}");
-        }
-
-        else {
+        } else {
             $album->imagen = $album->imagen;
         }
 
@@ -140,7 +149,8 @@ class AlbumController extends Controller
     public function destroy(Album $album)
     {
         if ($album->canciones()->count() > 0) {
-            return redirect()->back()
+            return redirect()
+                ->back()
                 ->withErrors(['album_' . $album->id => 'No puede eliminar el artista.'])
                 ->withInput();
         }

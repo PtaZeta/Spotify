@@ -4,10 +4,13 @@ use App\Http\Controllers\AlbumController;
 use App\Http\Controllers\ArtistaController;
 use App\Http\Controllers\CancionController;
 use App\Http\Controllers\ProfileController;
+use App\Mail\enviarCorreo;
+use App\Mail\superarCanciones;
 use App\Models\Album;
 use App\Models\Artista;
 use App\Models\Cancion;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/portada', function () {
@@ -45,5 +48,12 @@ Route::resource('canciones', CancionController::class)->parameters([
 ]);
 
 Route::resource('artistas', ArtistaController::class);
+
+Route::get('/correo', function () {
+    Mail::to('manuel@inbox.mailtrap.io')->send(new enviarCorreo);
+    return redirect()->route('index');
+});
+
+Route::get('/enviar-correo-canciones/{album}', [AlbumController::class, 'enviarCorreoSiSuperaCanciones']);
 
 require __DIR__.'/auth.php';
