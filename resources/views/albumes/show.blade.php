@@ -27,23 +27,44 @@
                 <h4 class="text-lg font-semibold text-gray-900">Duración total del álbum:</h4>
                 <p class="text-xl text-gray-800">{{ $duracionTotalFormateada }}</p>
             </div>
+            <div class="mt-6">
+                <h4 class="text-lg font-semibold text-gray-900">Ordenar canciones:</h4>
+                <form method="GET" action="{{ route('albumes.show', $album->id) }}">
+                    <select name="orden" class="border border-gray-300 rounded p-2">
+                        <option value="titulo" {{ $ordenCampo == 'titulo' ? 'selected' : '' }}>Nombre</option>
+                        <option value="duracion" {{ $ordenCampo == 'duracion' ? 'selected' : '' }}>Duración</option>
+                    </select>
+                    <select name="tipo" class="border border-gray-300 rounded p-2">
+                        <option value="asc" {{ $ordenTipo == 'asc' ? 'selected' : '' }}>Ascendente</option>
+                        <option value="desc" {{ $ordenTipo == 'desc' ? 'selected' : '' }}>Descendente</option>
+                    </select>
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded">Ordenar</button>
+                </form>
+
+            </div>
 
             <!-- Sección de canciones -->
             <div class="mt-6">
                 <h4 class="text-lg font-semibold text-gray-900">Canciones:</h4>
                 <ul>
-                    @foreach ($album->canciones as $cancion)
+                    @foreach ($canciones as $cancion)
                         <li class="mt-4">
                             <div class="text-gray-800 font-semibold">{{ $cancion->titulo }}</div>
                             <div class="text-gray-600">Duración: {{ $cancion->duracion }}</div>
-                            <div class="text-gray-600">Artistas:
-                                @foreach ($cancion->artistas as $artista)
-                                    <span>{{ $artista->nombre }}</span>{{ !$loop->last ? ',' : '' }}
-                                @endforeach
-                            </div>
                         </li>
                     @endforeach
                 </ul>
+            </div>
+            <div class="mt-4">
+                {{ $canciones->appends(['orden' => $ordenCampo, 'tipo' => $ordenTipo])->links() }}
+            </div>
+            <div class="mt-6">
+                <h4 class="text-lg font-semibold text-gray-900">Artistas:</h4>
+                <div class="text-gray-600">
+                    @foreach ($artistasUnicos as $artista)
+                        <span>{{ $artista->nombre }}</span>{{ !$loop->last ? ', ' : '' }}
+                    @endforeach
+                </div>
             </div>
 
             <div class="mt-6 text-center">

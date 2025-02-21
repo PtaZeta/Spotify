@@ -13,6 +13,6 @@ class ArtistaSeeder extends Seeder
      */
     public function run(): void
     {
-        Artista::factory()->count(20)->create();
+        Artista::factory()->create();
     }
 }

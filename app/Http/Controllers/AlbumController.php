@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateAlbumRequest;
 use App\Models\Album;
 use App\Models\Cancion;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AlbumController extends Controller
@@ -68,9 +69,9 @@ class AlbumController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(Request $request, Album $album)
     {
-        $album = Album::find($id);
+        $artistasUnicos = $album->canciones->flatMap->artistas->unique('id');
         $duracionTotal = $album->canciones->reduce(function ($carry, $cancion) {
             list($minutos, $segundos) = explode(':', $cancion->duracion);
             $carry += ($minutos * 60) + $segundos;
@@ -79,7 +80,20 @@ class AlbumController extends Controller
         $minutosTotal = floor($duracionTotal / 60);
         $segundosTotal = $duracionTotal % 60;
         $duracionTotalFormateada = sprintf("%02d:%02d", $minutosTotal, $segundosTotal);
-        return view('albumes.show', compact('album', 'duracionTotalFormateada'));
+
+        $ordenCampo = $request->input('orden', 'titulo');
+        $ordenTipo = $request->input('tipo', 'asc');
+
+        $canciones = $album->canciones()->orderBy($ordenCampo, $ordenTipo)->paginate(5);
+
+        return view('albumes.show', [
+            'album' => $album,
+            'duracionTotalFormateada' => $duracionTotalFormateada,
+            'artistasUnicos' => $artistasUnicos,
+            'canciones' => $canciones,
+            'ordenCampo' => $ordenCampo,
+            'ordenTipo' => $ordenTipo,
+        ]);
     }
 
     /**
@@ -123,9 +137,14 @@ class AlbumController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Album $album)
     {
-        Album::find($id)->delete();
+        if ($album->canciones()->count() > 0) {
+            return redirect()->back()
+                ->withErrors(['album_' . $album->id => 'No puede eliminar el artista.'])
+                ->withInput();
+        }
+        $album->delete();
         return redirect()->route('albumes.index');
     }
 }

@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Album;
+use App\Models\Cancion;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -36,6 +37,9 @@ class AlbumFactory extends Factory
         return $this->afterCreating(function (Album $album) {
             $users = User::inRandomOrder()->take(rand(1, 5))->pluck('id');
             $album->users()->sync($users);
+
+            $canciones = Cancion::inRandomOrder()->take(rand(0, 10))->pluck('id');
+            $album->canciones()->sync($canciones);
         });
     }
 }

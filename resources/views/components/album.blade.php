@@ -30,6 +30,12 @@
                     </form>
                 @endcan
             </div>
+            @if ($errors->has('album_' . $album->id))
+                <div class="mt-2 text-red-600">
+                    <p>{{ $errors->first('album_' . $album->id) }}</p>
+                </div>
+            @endif
         </div>
     </a>
+
 </div>

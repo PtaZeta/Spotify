@@ -24,7 +24,7 @@ class UpdateCancionRequest extends FormRequest
     {
         return [
             'titulo' => 'required|string|max:255',
-            'duracion' => ['required', 'regex:/^([0-5]?[0-9]):([0-5][0-9])$/'],
+            'duracion' => 'required'|'regex:/^([0-5]?[0-9]):([0-5][0-9])$/',
             'artistas' => 'required|array',
             'albumes' => 'array',
         ];
